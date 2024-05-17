@@ -10,9 +10,6 @@ import torch
 from FrEIA.utils import force_to
 from torch import Tensor
 
-from lightning_bg.models import BaseTrainable
-
-
 # TODO: use a premade backbone searcher
 def align_backbone(coordinates, system: bgmol.systems.OpenMMSystem):
     """

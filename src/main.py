@@ -44,6 +44,8 @@ if __name__ == "__main__":
         # import alanine data
         is_data_here = os.path.exists(molecule_path + "/Ala2TSF300.npy")
         print(f"Is data here? {is_data_here}, molecule path: {molecule_path}")
+        if not os.path.exists(molecule_path):
+            os.makedirs(molecule_path)
         ala_data = bgmol.datasets.Ala2TSF300(download=not is_data_here, read=True, root=molecule_path)
         # define system & energy model
         system = ala_data.system
@@ -83,7 +85,7 @@ if __name__ == "__main__":
         print("No learning rate found in optimizer dict. Not adjusting learning rate.")
 
     # load model class and corresponding param class
-    ModelClass = getattr(models, params['model_name'])
+    ModelClass = getattr(models, params['network_name'])
     ParamClass = ModelClass.hparams_type
     hparams = ParamClass(**params['network_params'])
 

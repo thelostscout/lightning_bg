@@ -13,6 +13,7 @@ from FrEIA.utils import force_to
 from lightning_trainable.hparams import AttributeDict
 
 from .utils import AlignmentIC, ICTransform
+from .fff_loss import fff_loss
 
 
 def get_model_by_name(name: str) -> "type(BaseTrainable)":
@@ -361,6 +362,24 @@ class RNVPfwkl(BaseRNVP):
         return dict(
             loss=loss,
         )
+
+
+class RNVPfff(BaseRNVP):
+    """ RealNVP model with free-form flow (nll-surrogate) loss."""
+    hparams: BaseHParams
+
+    def compute_metrics(self, batch, batch_idx):
+        print(batch)
+        loss = fff_loss(
+            batch,
+            partial(self.inn, rev=False, jac=False),
+            partial(self.inn, rev=True, jac=False),
+            beta=10,
+        )
+        return dict(
+            loss=loss,
+        )
+
 
 
 class RNVPpseudofwkl(BaseRNVPEnergy):

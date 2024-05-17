@@ -1,5 +1,5 @@
 molecule: "alanine_dipeptide"
-network_name: "RNVPfwkl"
+network_name: "RNVPfff"
 
 
 network_params: {
