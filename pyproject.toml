@@ -6,9 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "lightning_bg"
 version = "0.1.0"
 description = "A high-level library to make the training of Boltzmann Generators simple and reproducible."
-readme = "README.md"
+#readme = "README.md"
 requires-python = ">=3.10"
-license = { file = "LICENSE" }
+#license = { file = "LICENSE" }
 keywords = ["Machine-Learning", "PyTorch-Lightning", "Boltzmann Generators"]
 
 authors = [
@@ -30,16 +30,13 @@ classifiers = [
 ]
 
 dependencies = [
-    # pytorch
-    "torch ~= 2.0",
-    # lightning
-    "lightning ~= 2.0",
-    "tensorboard ~= 2.12",
-    # io
-    "tomli ~= 2.0",
-    "pyyaml ~= 6.0",
-    # other
-
+    # lightning-trainable
+    "lightning-trainable@git+https://github.com/LarsKue/lightning-trainable",
+    # FrEIA
+    "freia@git+https://github.com/vislearn/FrEIA",
+    # bgmol & bgflow
+    "bgflow@git+https://github.com/noegroup/bgflow",
+    "bgmol@git+https://github.com/noegroup/bgmol",
 ]
 [project.urls]
 "Homepage" = "https://github.com/thelostscout/lightning_bg"
