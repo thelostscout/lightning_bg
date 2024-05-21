@@ -13,7 +13,7 @@ from FrEIA.utils import force_to
 from lightning_trainable.hparams import AttributeDict
 
 from .utils import AlignmentIC, ICTransform
-from .fff_loss import fff_loss
+from .fff_loss import fff_loss, nll_exact
 
 
 def get_model_by_name(name: str) -> "type(BaseTrainable)":
@@ -369,17 +369,29 @@ class RNVPfff(BaseRNVP):
     hparams: BaseHParams
 
     def compute_metrics(self, batch, batch_idx):
-        print(batch)
-        loss = fff_loss(
-            batch,
-            partial(self.inn, rev=False, jac=False),
-            partial(self.inn, rev=True, jac=False),
-            beta=10,
-        )
-        return dict(
-            loss=loss,
-        )
+        beta = 10
+        if self.training and not (self.trainer.validating or self.trainer.testing):
+            loss = fff_loss(
+                batch,
+                lambda x: self.inn(x, rev=False, jac=True)[0],
+                lambda x: self.inn(x, rev=True, jac=True)[0],
+                beta=beta,
+            )
+        else:
+            # for validation, we need to calculate the exact loss. This is costly but ok if only done during
+            # validation steps
+            nll = nll_exact(
+                batch,
+                lambda x: self.inn(x, rev=False, jac=True)[0],
+                lambda x: self.inn(x, rev=True, jac=True)[0],
+                self.q,
+            )
+            mse = torch.sum((batch - nll.x1) ** 2, dim=tuple(range(1, len(batch.shape))))
+            loss = nll.nll + beta * mse
 
+        return dict(
+            loss=loss.mean(),
+        )
 
 
 class RNVPpseudofwkl(BaseRNVPEnergy):
@@ -559,6 +571,7 @@ class BaseRQS(BaseTrainable):
     """
     Base class for all models that use a Rational Quadratic Spline network as INN (https://arxiv.org/abs/1906.04032).
     """
+
     def configure_inn(self):
         """ Configures the INN with a Rational Quadratic Spline network and exponential subnets."""
         inn = Ff.SequenceINN(self.hparams.n_dims)
@@ -580,6 +593,7 @@ class BaseRQS(BaseTrainable):
 
 class RQSfwkl(BaseRQS):
     """ Rational Quadratic Spline model with forward KL loss."""
+
     def forward_kl_loss(self, z, log_det_JF):
         """
         Computes the forward KL loss.
